@@ -1,0 +1,7 @@
+.bloop
+.bsp
+.metals
+project/project
+project/target
+target/
+data
