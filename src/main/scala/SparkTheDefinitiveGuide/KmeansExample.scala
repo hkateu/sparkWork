@@ -8,6 +8,7 @@ import org.apache.spark.ml.feature.StringIndexer
 import org.apache.spark.ml.feature.OneHotEncoder
 import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.clustering.KMeans
 
 object KmeansExample extends App{
   val spark = SparkSession.builder().appName("test").master("local").getOrCreate()
@@ -55,9 +56,16 @@ object KmeansExample extends App{
   val vectorAssembler = new VectorAssembler().setInputCols(Array("UnitPrice", "Quantity", "day_of_week_encoded")).setOutputCol("features")
   val transformationPipeline = new Pipeline().setStages(Array(indexer, encoder, vectorAssembler))
   val fittedPipeline = transformationPipeline.fit(trainedDataFrame)
-  val transformedPipeline = fittedPipeline.transform(trainedDataFrame)
+  val transformedTraining = fittedPipeline.transform(trainedDataFrame)
 
-  transformedPipeline.show(5)
+  //transformedTraining.show(5)
+  transformedTraining.cache()
+  val kmeans = new KMeans().setK(20).setSeed(1L)
+  val kmModel = kmeans.fit(transformedTraining)
+
+  val transformTest = fittedPipeline.transform(testDataFrame)
+  println("print our test results")
+  transformTest.show(5)
 
   spark.stop()
 }
